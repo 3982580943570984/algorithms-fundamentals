@@ -1,0 +1,26 @@
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 80vh;
+}
+
+#main {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+#form {
+  border: 2px solid white;
+  width: 80%;
+  height: 80%;
+}
+
+tbody tr:nth-child(odd) {
+  background-color: rgb(31, 29, 29);
+}
+
+tbody tr:nth-child(even) {
+  background-color: rgb(128, 128, 128);
+}

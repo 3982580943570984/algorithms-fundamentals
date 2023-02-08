@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta name="color-scheme" content="light dark">
+	<title>Sorting Algorithms</title>
+	<link rel="stylesheet" href="./index.css">
+</head>
+
+<body>
+	<div id="main">
+		<table id="form">
+			<thead>
+				<tr>
+					<th></th>
+					<th>Сортировка</th>
+					<th>Сравнения</th>
+					<th>Перестановки</th>
+					<th>Время</th>
+				</tr>
+			</thead>
+
+			<tbody>
+				<tr>
+					<td><input class="sorting" id="bubble" type="checkbox"></td>
+					<td>Обмен</td>
+					<td id="bubble-comparisons"></td>
+					<td id="bubble-transitions"></td>
+					<td id="bubble-time"></td>
+				</tr>
+				<tr>
+					<td><input class="sorting" id="selection" type="checkbox"></td>
+					<td>Выбор</td>
+					<td id="selection-comparisons"></td>
+					<td id="selection-transitions"></td>
+					<td id="selection-time"></td>
+				</tr>
+				<tr>
+					<td><input class="sorting" id="insertion" type="checkbox"></td>
+					<td>Включение</td>
+					<td id="insertion-comparisons"></td>
+					<td id="insertion-transitions"></td>
+					<td id="insertion-time"></td>
+				</tr>
+				<tr>
+					<td><input class="sorting" id="quick" type="checkbox"></td>
+					<td>Быстрая</td>
+					<td id="quick-comparisons"></td>
+					<td id="quick-transitions"></td>
+					<td id="quick-time"></td>
+				</tr>
+			</tbody>
+
+			<tfoot>
+				<th colspan="2"><input type="button" value="Сортировать" onclick="performSortings();"></th>
+				<th colspan="1">Размер массива</th>
+				<th colspan="2"><input id="size" type="number" value="1" min="1" step="1" maxlength="6"
+						oninput="validity.valid||(value='');" required></th>
+			</tfoot>
+		</table>
+	</div>
+	<script src="./source/logic.js"></script>
+</body>
+
+</html>

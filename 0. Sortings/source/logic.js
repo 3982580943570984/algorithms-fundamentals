@@ -1,15 +1,7 @@
-/*
-import { bubblesort, selectionsort, insertionsort, quicksort } from './sortings';
-import { replaceText } from './utility';
-*/
-
 const randomArray = (length, max) => {
     return Array(length).fill().map(() => Math.round(Math.random() * max));
 }
 
-/**
-* Check if list is sorted
-*/
 const isSorted = (arr) => {
     return arr.every((value, index, array) => {
         return index === 0 || array[index - 1] <= value;
@@ -21,14 +13,37 @@ const replaceText = (selector, text) => {
     if (element) element.innerText = text;
 }
 
+function arrayMin(arr) {
+    var len = arr.length, min = Infinity;
+    while (len--) {
+        if (arr[len] < min) {
+            min = arr[len];
+        }
+    }
+    return min;
+};
+
+function arrayMax(arr) {
+    var len = arr.length, max = -Infinity;
+    while (len--) {
+        if (arr[len] > max) {
+            max = arr[len];
+        }
+    }
+    return max;
+};
+
 const chooseSorting = (name, array) => {
     if (name === 'bubble') return bubblesort(array);
     if (name === 'selection') return selectionsort(array);
     if (name === 'insertion') return insertionsort(array);
     if (name === 'quick') {
-        quickComparisons = 0, quickTransitions = 0, quickTime = window.performance.now()
+        quickComparisons = 0, quickTransitions = 0, quickTime = window.performance.now();
         return quicksort(array, 0, array.length);
     }
+    if (name === 'shell') return shellsort(array);
+    if (name === 'linear') return linearsort(array);
+    if (name === 'default') return defaultsort(array);
 }
 
 const performSortings = () => {
@@ -135,4 +150,77 @@ const partition = (arr, start, end) => {
     ++quickTransitions;
 
     return index;
+}
+
+/**
+* Shell Sort === Шелла Сортировка
+*/
+const shellsort = (arr) => {
+    let shellComparisons = 0, shellTransitions = 0, shellTime = window.performance.now();
+    const array = arr.slice();
+
+    // 3x+1 increment sequence:  1, 4, 13, 40, 121, 364, 1093, ...
+    let gap = 1;
+    while (gap < array.length / 3) {
+        gap = gap * 3 + 1;
+        ++shellComparisons;
+    }
+
+    while (gap > 0) {
+        for (let i = gap; i < array.length; ++i) {
+            // Insertion sort
+            for (let j = i; j >= gap && array[j] < array[j - gap]; j -= gap) {
+                [array[j], array[j - gap]] = [array[j - gap], array[j]];
+                ++shellTransitions;
+            }
+            ++shellComparisons;
+        }
+        gap = Math.floor(gap / 3);
+        ++shellComparisons;
+    }
+
+    return [shellComparisons, shellTransitions, parseInt(window.performance.now() - shellTime)];
+}
+
+/**
+* Linear Sort === Линейная Сортировка
+*/
+const linearsort = (arr) => {
+    let linearComparisons = 0, linearTransitions = 0, linearTime = window.performance.now();
+    const array = arr.slice();
+
+    let max = arrayMax(array);
+    let min = arrayMin(array);
+
+    const count = [];
+    for (let i = min; i <= max; i++) count[i] = 0;
+
+    array.forEach(element => {
+        ++count[element];
+        ++linearTransitions;
+    });
+
+    const sortedArray = [];
+    for (let i = min; i <= max; i++) {
+        while (count[i] > 0) {
+            sortedArray.push(i);
+            --count[i];
+            ++linearComparisons;
+            ++linearTransitions;
+        }
+    }
+
+    return [linearComparisons, linearTransitions, parseInt(window.performance.now() - linearTime)];
+}
+
+/**
+* Default Sort === Встроенная Сортировка
+*/
+const defaultsort = (arr) => {
+    let defaultTime = window.performance.now();
+    const array = arr.slice();
+    array.sort((a, b) => {
+        return a - b;
+    });
+    return ['-', '-', parseInt(window.performance.now() - defaultTime)];
 }

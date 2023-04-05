@@ -39,11 +39,12 @@ const chooseSorting = (name, array) => {
     if (name === 'insertion') return insertionsort(array);
     if (name === 'quick') {
         quickComparisons = 0, quickTransitions = 0, quickTime = window.performance.now();
-        return quicksort(array, 0, array.length);
+        return quicksort(array.slice(), 0, array.length);
     }
     if (name === 'shell') return shellsort(array);
     if (name === 'linear') return linearsort(array);
     if (name === 'default') return defaultsort(array);
+    if (name === 'heap') return heapsort(array);
 }
 
 const performSortings = () => {
@@ -223,4 +224,49 @@ const defaultsort = (arr) => {
         return a - b;
     });
     return ['-', '-', parseInt(window.performance.now() - defaultTime)];
+}
+
+
+/**
+* Heap Sort === Пирамидальная Сортировка
+*/
+const heapsort = (arr) => {
+    let heapComparisons = 0, heapTransitions = 0, heapTime = window.performance.now();
+    const array = arr.slice();
+
+    const heapify = (parentIndex, length) => {
+        let largestIndex = parentIndex;
+        const leftIndex = 2 * parentIndex + 1;
+        const rightIndex = 2 * parentIndex + 2;
+
+        if (leftIndex < length && array[leftIndex] > array[largestIndex]) {
+            largestIndex = leftIndex;
+            ++heapComparisons;
+        }
+
+        if (rightIndex < length && array[rightIndex] > array[largestIndex]) {
+            largestIndex = rightIndex;
+            ++heapComparisons;
+        }
+
+        if (largestIndex !== parentIndex) {
+            [array[parentIndex], array[largestIndex]] = [array[largestIndex], array[parentIndex]];
+            ++heapTransitions;
+            ++heapComparisons;
+            heapify(largestIndex, length);
+        }
+    }
+
+    // Сборка Max Heap
+    for (let i = Math.floor(array.length / 2) - 1; i >= 0; i--)
+        heapify(i, array.length);
+
+    // Извлечение элементов из Max Heap и сортировка
+    for (let i = array.length - 1; i >= 0; i--) {
+        [array[0], array[i]] = [array[i], array[0]];
+        ++heapTransitions;
+        heapify(0, i);
+    }
+
+    return [heapComparisons, heapTransitions, parseInt(window.performance.now() - heapTime)];
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"sort"
 	"time"
 )
 
@@ -207,7 +208,7 @@ func naturalTwoPhaseSplit(items []int) [][]int {
 
 func naturalTwoPhaseMergeSort(array []int) []int {
 	merge := func(left, right []int) []int {
-		result := make([]int, len(left)+len(right))
+		result := []int{}
 		for len(left) > 0 && len(right) > 0 {
 			if left[0] <= right[0] {
 				result = append(result, left[0])
@@ -254,11 +255,49 @@ func naturalOnePhaseMergeSort(array []int) []int {
 	return []int{}
 }
 
-func mergeInsertionSort() {}
+func mergeInsertionSort(array []int, blockSize int) []int {
+	merge := func(left, right []int) []int {
+		result := []int{}
+		for len(left) > 0 && len(right) > 0 {
+			if left[0] <= right[0] {
+				result = append(result, left[0])
+				left = left[1:]
+			} else {
+				result = append(result, right[0])
+				right = right[1:]
+			}
+		}
+		result = append(result, left...)
+		result = append(result, right...)
+		return result
+	}
+
+	blocks := [][]int{}
+
+	block := []int{}
+	for _, v := range array {
+		if len(block) < blockSize {
+			block = append(block, v)
+		} else {
+			blocks = append(blocks, block)
+			block = []int{v}
+		}
+	}
+	blocks = append(blocks, block)
+
+	sort.Ints(blocks[len(blocks)-1])
+	for i := len(blocks) - 2; i >= 0; i-- {
+		sort.Ints(blocks[i])
+		blocks[i] = merge(blocks[i], blocks[i+1])
+		blocks = blocks[:len(blocks)-1]
+	}
+
+	return blocks[0]
+}
 
 func main() {
-	for i := 0; i < 1000; i++ {
+	for i := 20; i <= 210; i++ {
 		array := generateRandomNumbers(i)
-		fmt.Println(isSorted(naturalTwoPhaseMergeSort(array)))
+		fmt.Println(isSorted(mergeInsertionSort(array, int(i/10))))
 	}
 }

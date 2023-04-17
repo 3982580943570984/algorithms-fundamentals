@@ -11,7 +11,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-var array = generateRandomNumbers(10000)
+var array = GenerateRandomNumbers(10000)
 
 var data = [][]string{
 	{"", "Сравнения", "Присвоения", "Время", "Отсортировано?"},
@@ -54,7 +54,14 @@ func main() {
 	buttonSort := widget.NewButton("Сортировать", func() {
 		n, _ := sizeBinding.Get()
 		size, _ := strconv.ParseInt(n, 10, 64)
-		array = generateRandomNumbers(int(size))
+
+		block, _ := percentBinding.Get()
+		blockSize, _ := strconv.ParseInt(block, 10, 64)
+		if blockSize == 0 {
+			blockSize = 1
+		}
+
+		array = GenerateRandomNumbers(int(size))
 
 		selectedSortings := checkGroup.Selected
 		if len(selectedSortings) != 0 {
@@ -64,25 +71,25 @@ func main() {
 			for _, v := range selectedSortings {
 				switch v {
 				case "Простое 2Ф":
-					comparisons, assignments, time, isSorted := twoPhaseMergeSort(array_copy)
-					data[1][1], data[1][2] = strconv.FormatInt(int64(comparisons), 10), strconv.FormatInt(int64(assignments), 10)
+					comparisons, permutations, time, isSorted := TwoPhaseMergeSort(array_copy)
+					data[1][1], data[1][2] = strconv.FormatInt(int64(comparisons), 10), strconv.FormatInt(int64(permutations), 10)
 					data[1][3], data[1][4] = strconv.FormatInt(time, 10), strconv.FormatBool(isSorted)
 				case "Простое 1Ф":
-					comparisons, assignments, time, isSorted := onePhaseMergeSort(array_copy)
-					data[2][1], data[2][2] = strconv.FormatInt(int64(comparisons), 10), strconv.FormatInt(int64(assignments), 10)
+					comparisons, permutations, time, isSorted := OnePhaseMergeSort(array_copy)
+					data[2][1], data[2][2] = strconv.FormatInt(int64(comparisons), 10), strconv.FormatInt(int64(permutations), 10)
 					data[2][3], data[2][4] = strconv.FormatInt(time, 10), strconv.FormatBool(isSorted)
 				case "Естественное 2Ф":
-					comparisons, assignments, time := twoPhaseNaturalMergeSort(array_copy)
-					data[3][1], data[3][2], data[3][3], data[3][4] = strconv.FormatInt(int64(comparisons), 10), strconv.FormatInt(int64(assignments), 10),
-						strconv.FormatInt(time, 10), strconv.FormatBool(isSorted(array_copy))
+					comparisons, permutations, time, isSorted := NaturalTwoPhaseMergeSort(array_copy)
+					data[3][1], data[3][2], data[3][3], data[3][4] = strconv.FormatInt(int64(comparisons), 10), strconv.FormatInt(int64(permutations), 10),
+						strconv.FormatInt(time, 10), strconv.FormatBool(isSorted)
 				case "Естественное 1Ф":
-					comparisons, assignments, time := onePhaseNaturalMergeSort(array_copy)
-					data[4][1], data[4][2], data[4][3], data[4][4] = strconv.FormatInt(int64(comparisons), 10), strconv.FormatInt(int64(assignments), 10),
-						strconv.FormatInt(time, 10), strconv.FormatBool(isSorted(array_copy))
+					comparisons, permutations, time, isSorted := NaturalOnePhaseMergeSort(array_copy)
+					data[4][1], data[4][2], data[4][3], data[4][4] = strconv.FormatInt(int64(comparisons), 10), strconv.FormatInt(int64(permutations), 10),
+						strconv.FormatInt(time, 10), strconv.FormatBool(isSorted)
 				case "Поглощение":
-					comparisons, assignments, time := absorptionSort(array_copy)
-					data[5][1], data[5][2], data[5][3], data[5][4] = strconv.FormatInt(int64(comparisons), 10), strconv.FormatInt(int64(assignments), 10),
-						strconv.FormatInt(time, 10), strconv.FormatBool(isSorted(array_copy))
+					comparisons, permutations, time, isSorted := MergeInsertionSort(array_copy, int(float64(len(array_copy))*float64(blockSize)*0.01))
+					data[5][1], data[5][2] = strconv.FormatInt(int64(comparisons), 10), strconv.FormatInt(int64(permutations), 10)
+					data[5][3], data[5][4] = strconv.FormatInt(time, 10), strconv.FormatBool(isSorted)
 				}
 			}
 			table.Refresh()

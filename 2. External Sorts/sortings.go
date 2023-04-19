@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"sort"
 	"time"
 )
@@ -55,7 +56,6 @@ func TwoPhaseMergeSort(array []int) (int, int, int64, bool) {
 		b, c := []int{}, []int{}
 		for i := 0; i < len(array); i += step * 2 {
 			left, right, end := i, min(i+step, len(array)), min(i+step*2, len(array))
-
 			b = append(b, array[left:right]...)
 			c = append(c, array[right:end]...)
 		}
@@ -77,6 +77,7 @@ func OnePhaseMerge(left, right []int, step int) ([]int, []int, int, int) {
 		sub_left, sub_right := left[:min(step, len(left))], right[:min(step, len(right))]
 		left, right = left[min(step, len(left)):], right[min(step, len(right)):]
 
+		// Четное -> в 'b', Нечетное -> в 'c'
 		if counter&1 == 0 {
 			for i := 0; i <= step*2; i++ {
 				if len(sub_left) == 0 {
@@ -134,9 +135,10 @@ func OnePhaseMergeSort(array []int) (int, int, int64, bool) {
 
 	comparisons, permutations := 0, 0
 
+	// Определяем четные элементы в массив 'b', нечетные - в массив 'c'
 	b, c := []int{}, []int{}
 	for i := 0; i < len(array); i++ {
-		if i&1 != 1 {
+		if i&1 == 0 {
 			b = append(b, array[i])
 		} else {
 			c = append(c, array[i])
@@ -161,20 +163,33 @@ func OnePhaseMergeSort(array []int) (int, int, int64, bool) {
 }
 
 /* Естественная сортировка двухфазным слиянием */
-func NaturalTwoPhaseSplit(items []int) [][]int {
-	splits := [][]int{}
-	currentSplit := []int{items[0]}
+func NaturalTwoPhaseSplit(items []int) ([][]int, [][]int) {
+	b, c := [][]int{}, [][]int{}
 
+	counter := 0
+	currentSplit := []int{items[0]}
 	for i := 1; i < len(items); i++ {
 		if items[i] >= items[i-1] {
 			currentSplit = append(currentSplit, items[i])
 		} else {
-			splits = append(splits, currentSplit)
+			if counter&1 == 0 {
+				b = append(b, currentSplit)
+			} else {
+				c = append(c, currentSplit)
+			}
+			counter++
+
 			currentSplit = []int{items[i]}
 		}
 	}
 
-	return append(splits, currentSplit)
+	if counter&1 == 0 {
+		b = append(b, currentSplit)
+	} else {
+		c = append(c, currentSplit)
+	}
+
+	return b, c
 }
 
 func NaturalTwoPhaseMergeSort(array []int) (int, int, int64, bool) {
@@ -183,6 +198,7 @@ func NaturalTwoPhaseMergeSort(array []int) (int, int, int64, bool) {
 
 	merge := func(left, right []int) []int {
 		result := []int{}
+		permutations += len(left) + len(right)
 		for len(left) > 0 && len(right) > 0 {
 			if left[0] <= right[0] {
 				result = append(result, left[0])
@@ -192,10 +208,7 @@ func NaturalTwoPhaseMergeSort(array []int) (int, int, int64, bool) {
 				right = right[1:]
 			}
 			comparisons++
-			permutations++
 		}
-		permutations += len(left) + len(right)
-
 		result = append(result, left...)
 		result = append(result, right...)
 		return result
@@ -205,24 +218,27 @@ func NaturalTwoPhaseMergeSort(array []int) (int, int, int64, bool) {
 		return comparisons, permutations, int64(time.Since(start)), IsSorted(array)
 	}
 
-	splits := NaturalTwoPhaseSplit(array)
-	for len(splits) > 1 {
-		newSplits := [][]int{}
-		for i := 0; i < len(splits); i += 2 {
-			if i == len(splits)-1 {
-				permutations++
-				newSplits = append(newSplits, splits[i])
-			} else {
-				permutations += len(splits[i]) + len(splits[i+1])
-				newSplits = append(newSplits, merge(splits[i], splits[i+1]))
-			}
+	// Разбиваем массив на отсортированные массивы
+	b, c := NaturalTwoPhaseSplit(array)
+	for len(b) > 1 {
+		array = []int{}
+		i := 0
+		for ; i < min(len(b), len(c)); i++ {
 			comparisons++
+			permutations += len(b[i]) + len(c[i])
+			array = append(array, merge(b[i], c[i])...)
 		}
 
-		splits = newSplits
+		if i < len(b) {
+			array = append(array, b[i]...)
+		} else if i < len(c) {
+			array = append(array, c[i]...)
+		}
+
+		b, c = NaturalTwoPhaseSplit(array)
 	}
 
-	return comparisons, permutations, int64(time.Since(start)), IsSorted(splits[0])
+	return comparisons, permutations, int64(time.Since(start)), IsSorted(b[0])
 }
 
 /* Естественная сортировка однофазным слиянием */
@@ -248,6 +264,7 @@ func NaturalOnePhaseMergeSort(array []int) (int, int, int64, bool) {
 
 	merge := func(left, right []int) []int {
 		result := []int{}
+		permutations += len(left) + len(right)
 		for len(left) > 0 && len(right) > 0 {
 			if left[0] <= right[0] {
 				result = append(result, left[0])
@@ -257,10 +274,7 @@ func NaturalOnePhaseMergeSort(array []int) (int, int, int64, bool) {
 				right = right[1:]
 			}
 			comparisons++
-			permutations++
 		}
-		permutations += len(left) + len(right)
-
 		result = append(result, left...)
 		result = append(result, right...)
 		return result
@@ -290,56 +304,59 @@ func NaturalOnePhaseMergeSort(array []int) (int, int, int64, bool) {
 	return comparisons, permutations, int64(time.Since(start)), IsSorted(splits[0])
 }
 
+/* Сортировка поглощением */
 func MergeInsertionSort(array []int, blockSize int) (int, int, int64, bool) {
 	start := time.Now()
 	comparisons, permutations := 0, 0
 
-	merge := func(left, right []int) []int {
-		result := []int{}
-		for len(left) > 0 && len(right) > 0 {
-			if left[0] <= right[0] {
-				result = append(result, left[0])
-				left = left[1:]
+	// Функция слияния
+	merge := func(subArray []int, start int) {
+		i, j := 0, start+len(subArray)
+		for i < len(subArray) && j < len(array) {
+			if subArray[i] < array[j] {
+				array[start] = subArray[i]
+				i++
 			} else {
-				result = append(result, right[0])
-				right = right[1:]
+				array[start] = array[j]
+				j++
 			}
-		}
-		result = append(result, left...)
-		result = append(result, right...)
-		return result
-	}
-
-	// Блоки, образованные от изначального массива
-	blocks := [][]int{}
-
-	// Разбиваем изначальный массив на блоки заданного размера
-	block := []int{}
-	for _, v := range array {
-		if len(block) < blockSize {
+			start++
+			comparisons++
 			permutations++
-			block = append(block, v)
-		} else {
-			permutations += len(block) + len(blocks)
-			blocks = append(blocks, block)
-			block = []int{v}
 		}
-		comparisons++
-	}
-	permutations += len(block) + len(blocks)
-	blocks = append(blocks, block)
 
-	// Сортируем последний блок
-	sort.Ints(blocks[len(blocks)-1])
-
-	// Производим сортировку последующих блоков и их слияние
-	for i := len(blocks) - 2; i >= 0; i-- {
-		permutations += len(blocks[i]) + len(blocks[i+1])
-
-		sort.Ints(blocks[i])
-		blocks[i] = merge(blocks[i], blocks[i+1])
-		blocks = blocks[:len(blocks)-1]
+		for i < len(subArray) {
+			array[start] = subArray[i]
+			i++
+			start++
+			permutations++
+		}
 	}
 
-	return comparisons, permutations, int64(time.Since(start)), IsSorted(blocks[0])
+	// Сортируем последний блок данных
+	lastBlock := array[len(array)-blockSize:]
+	sort.Slice(lastBlock, func(i, j int) bool { return lastBlock[i] < lastBlock[j] })
+	permutations += len(lastBlock)
+
+	// Перезаписываем последний блок
+	copy(array[len(array)-blockSize:], lastBlock)
+	permutations += len(lastBlock)
+
+	// Определяем количество блоков
+	blocksAmount := int(math.Ceil(float64(len(array))/float64(blockSize))) - 2
+
+	// Постоянный массив для блоков
+	block := make([]int, blockSize)
+	for i := blocksAmount; i >= 0; i-- {
+		// Копируем элементы в массив для блоков
+		copy(block, array[i*blockSize:(i+1)*blockSize])
+		// Сортируем блок
+		sort.Ints(block)
+		// Производим слияние с основным массивом
+		merge(block, i*blockSize)
+
+		permutations += len(block)
+	}
+
+	return comparisons, permutations, int64(time.Since(start)), IsSorted(array)
 }

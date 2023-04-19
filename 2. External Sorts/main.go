@@ -11,7 +11,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-var array = GenerateRandomNumbers(10000)
+var array []int
 
 var data = [][]string{
 	{"", "Сравнения", "Присвоения", "Время", "Отсортировано?"},
@@ -59,6 +59,10 @@ func main() {
 		blockSize, _ := strconv.ParseInt(block, 10, 64)
 		if blockSize == 0 {
 			blockSize = 1
+			percentBinding.Set("1")
+		} else if blockSize > 100 {
+			blockSize = 100
+			percentBinding.Set("100")
 		}
 
 		array = GenerateRandomNumbers(int(size))
